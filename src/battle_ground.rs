@@ -1,39 +1,53 @@
 use crate::field::Field;
+use crate::ship::Ship;
 
 #[derive(Clone, Debug)]
 pub struct BattleGround {
-    pub rows: Vec<Vec<Field>>,
+    pub fields: Vec<Field>,
+    pub ships: Vec<Ship>
 }
 
 impl BattleGround {
-    fn push_field(&mut self, row: Vec<Field>) {
-        self.rows.push(row)
+    pub fn new() -> Self {
+        Self::build()
     }
-}
 
+    fn arrange_ships(&self) -> Vec<Ship> {
+        let mut ships = vec![];
 
-pub fn build_battle_ground() -> BattleGround{
-    let battle_ground_size = 10;
+        let one_desk_ship = Ship {
+            desks: 1,
+            fields: vec![(Field { asics_x: 2, asics_y: 3 })],
+        };
 
-    let mut asics_x: Vec<Field> = vec![];
+        ships.push(one_desk_ship);
 
-    let mut battle_ground = BattleGround {
-        rows: vec![]
-    };
+        ships
+    }
 
-    for x in 1..(battle_ground_size + 1) {
-        for y in 1..(battle_ground_size + 1) {
-            asics_x.push(Field {
-                asics_x: x,
-                asics_y: y,
-            });
+    fn build() -> Self {
+        let battle_ground_size = 10;
 
-            battle_ground.push_field(asics_x.clone());
+        let mut battle_ground = Self {
+            fields: vec![],
+            ships: vec![]
+        };
+
+        for x in 1..(battle_ground_size + 1) {
+            for y in 1..(battle_ground_size + 1) {
+                battle_ground.push_field(Field {
+                    asics_x: x,
+                    asics_y: y
+                });
+            }
         }
+
+        battle_ground
     }
 
-    battle_ground
+    fn push_field(&mut self, field: Field) {
+        self.fields.push(field)
+    }
 }
-
 
 
