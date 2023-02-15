@@ -1,11 +1,7 @@
+use std::borrow::{Borrow, BorrowMut};
 use crate::field::Field;
 use crate::ship::Ship;
-
-#[derive(Clone, Debug)]
-pub struct BattleGround {
-    pub fields: Vec<Field>,
-    pub ships: Vec<Ship>
-}
+use rand::Rng;
 
 #[derive(Clone, Debug, Default)]
 struct Navigator {
@@ -13,6 +9,12 @@ struct Navigator {
     is_right: bool,
     is_up: bool,
     is_down: bool
+}
+
+#[derive(Clone, Debug)]
+pub struct BattleGround {
+    pub fields: Vec<Field>,
+    pub ships: Vec<Ship>
 }
 
 impl BattleGround {
@@ -77,42 +79,94 @@ impl BattleGround {
     }
 
     fn arrange_ships(&mut self) {
-        let mut ships = vec![];
+        let mut rng = rand::thread_rng();
 
-        ships.push(Ship {
-            desks: 1,
-            fields: vec![(Field { asics_x: 2, asics_y: 3 })],
-        });
+        // Расположить однопалубные корабли
+        while self.ships.iter().filter(|ship| ship.desks == 1).count() < 4 {
+            let mut field = Field {
+                asics_x: rng.gen_range(1..11),
+                asics_y: rng.gen_range(1..11),
+            };
 
-        ships.push(Ship {
-            desks: 1,
-            fields: vec![(Field { asics_x: 4, asics_y: 3 })],
-        });
+            if !self.can_not_arrange_ship(field.borrow_mut()) {
+                self.ships.push(Ship {
+                    desks: 1,
+                    fields: vec![field],
+                });
+            }
+        }
 
-        ships.push(Ship {
-            desks: 1,
-            fields: vec![(Field { asics_x: 1, asics_y: 1 })],
-        });
+        while self.ships.iter().filter(|ship| ship.desks == 2).count() < 3 {
+            // Расположить двухпалубные корабли
+            let mut ship_fields: Vec<Field> = vec![];
 
-        ships.push(Ship {
-            desks: 2,
-            fields: vec![
-                Field { asics_x: 10, asics_y: 7 },
-                Field { asics_x: 10, asics_y: 8 },
-            ],
-        });
+            ship_fields = self.arrange_decks_fields(2, ship_fields).clone();
 
-        ships.push(Ship {
-            desks: 4,
-            fields: vec![
-                Field { asics_x: 7, asics_y: 7 },
-                Field { asics_x: 7, asics_y: 8 },
-                Field { asics_x: 7, asics_y: 9 },
-                Field { asics_x: 7, asics_y: 10 },
-            ],
-        });
+            self.ships.push(Ship {
+                desks: 2,
+                fields: ship_fields
+            });
+        }
 
-        self.ships = ships
+        while self.ships.iter().filter(|ship| ship.desks == 3).count() < 2 {
+            // Расположить трехпалубные корабли
+            let mut ship_fields: Vec<Field> = vec![];
+
+            ship_fields = self.arrange_decks_fields(3, ship_fields).clone();
+
+            self.ships.push(Ship {
+                desks: 3,
+                fields: ship_fields
+            });
+        }
+
+        while self.ships.iter().filter(|ship| ship.desks == 4).count() < 1 {
+            // Расположить трехпалубные корабли
+            let mut ship_fields: Vec<Field> = vec![];
+
+            ship_fields = self.arrange_decks_fields(3, ship_fields).clone();
+
+            self.ships.push(Ship {
+                desks: 4,
+                fields: ship_fields
+            });
+        }
+    }
+
+    fn arrange_decks_fields(&mut self, number_of_desc: u8, mut ship_fields: Vec<Field>) -> Vec<Field> {
+        let mut rng = rand::thread_rng();
+
+        while ship_fields.len() < number_of_desc as usize {
+
+            let (mut x, mut y) = (rng.gen_range(1..11), rng.gen_range(1..11));
+
+            if ship_fields.len() > 0 {
+                let last_field = ship_fields.last().unwrap();
+
+                (x, y) = (last_field.asics_x + 1, last_field.asics_y);
+
+                if self.can_not_arrange_ship((Field { asics_x: x, asics_y: y }).borrow_mut()) || x > 10 || y > 10   {
+                    (x, y) = (last_field.asics_x, last_field.asics_y + 1);
+                } else if self.can_not_arrange_ship((Field { asics_x: last_field.asics_x, asics_y: last_field.asics_y + 1 }).borrow_mut()) || last_field.asics_y + 1 > 10 || last_field.asics_x > 10  {
+                    ship_fields = self.arrange_decks_fields(number_of_desc, vec![]);
+                }
+            }
+
+            let field = Field {
+                asics_x: x,
+                asics_y: y,
+            };
+
+            if !self.can_not_arrange_ship(field.borrow()) {
+                ship_fields.push(field);
+
+                ship_fields = self.arrange_decks_fields(number_of_desc, ship_fields);
+            } else {
+                ship_fields = self.arrange_decks_fields(number_of_desc, vec![]);
+            }
+        }
+
+        ship_fields
     }
 
     fn build() -> Self {
