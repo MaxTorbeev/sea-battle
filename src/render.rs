@@ -1,14 +1,19 @@
 use crate::battle_ground::BattleGround;
 use crate::field::Field;
-use crate::ship::Ship;
 
-fn print_field(field: &Field, ships: Vec<Ship>) {
-    print!("| {} ", if !field.has_ship(ships) { "  " } else {"[]"});
+fn print_field(field: &Field, battle_ground: BattleGround) {
+    if field.has_ship(battle_ground.clone().ships) {
+        print!("| [ ] ");
+    } else if battle_ground.can_not_arrange_ship(field) {
+        print!("|  *  ");
+    } else {
+        print!("|     ");
+    }
 }
 
 fn print_legend(field: &Field, is_horizontal: bool) {
     if is_horizontal {
-        print!("| {}  ", field.asics_y);
+        print!("|  {}  ", field.asics_y);
     } else {
         if field.asics_x.to_string().len() == 2 {
             print!(" {}   ", field.asics_x);
@@ -24,6 +29,7 @@ fn print_space() {
 
 pub fn battle_ground(battle_ground: BattleGround) {
     print_space();
+
     for field in battle_ground.fields.iter() {
         if field.asics_x == 1 {
             print_legend(field, true)
@@ -35,7 +41,7 @@ pub fn battle_ground(battle_ground: BattleGround) {
     print_space();
 
     for _x in 1..11 {
-        print!("-----");
+        print!("------");
     }
 
     println!();
@@ -47,14 +53,14 @@ pub fn battle_ground(battle_ground: BattleGround) {
                     println!();
                     print_legend(field, false);
 
-                    print_field(field, battle_ground.ships.clone());
+                    print_field(field, battle_ground.clone());
                 }
             } else {
-                print_field(field, battle_ground.ships.clone());
+                print_field(field, battle_ground.clone());
             }
         } else {
             print_legend(field, false);
-            print_field(field, battle_ground.ships.clone());
+            print_field(field, battle_ground.clone());
         }
     }
 }
