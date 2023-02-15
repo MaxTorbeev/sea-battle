@@ -6,7 +6,8 @@ mod render;
 use crate::battle_ground::BattleGround;
 
 fn main() {
-    let battle_ground: BattleGround = BattleGround::new();
+    let size: u8 = 10;
+    let battle_ground: BattleGround = BattleGround::new(size);
 
-    render::battle_ground(battle_ground)
+    render::battle_ground(battle_ground, size)
 }

@@ -2,6 +2,7 @@ use std::borrow::{Borrow, BorrowMut};
 use crate::field::Field;
 use crate::ship::Ship;
 use rand::Rng;
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Default)]
 struct Navigator {
@@ -14,12 +15,21 @@ struct Navigator {
 #[derive(Clone, Debug)]
 pub struct BattleGround {
     pub fields: Vec<Field>,
-    pub ships: Vec<Ship>
+    pub ships: Vec<Ship>,
+    size: u8,
+    number_of_ships: HashMap<u8, u8>,
 }
 
 impl BattleGround {
-    pub fn new() -> Self {
-        Self::build()
+    pub fn new(size: u8) -> Self {
+        let number_of_ships: HashMap<u8, u8> = HashMap::from([
+            (1, 4),
+            (2, 3),
+            (3, 2),
+            (4, 1),
+        ]);
+
+        Self::build(size, number_of_ships)
     }
 
     fn get_neighboring_free_field(&self, field: &Field, navigate: Navigator) -> Option<&Field> {
@@ -78,81 +88,48 @@ impl BattleGround {
         false
     }
 
+    ///
+    /// Расположить корабли на поле боя
+    ///
     fn arrange_ships(&mut self) {
-        let mut rng = rand::thread_rng();
+        for (desks, number) in self.number_of_ships.clone() {
+            while self.ships.iter().filter(|ship| ship.desks == desks).count() < number as usize {
+                // Расположить двухпалубные корабли
+                let mut ship_fields: Vec<Field> = vec![];
 
-        // Расположить однопалубные корабли
-        while self.ships.iter().filter(|ship| ship.desks == 1).count() < 4 {
-            let mut field = Field {
-                asics_x: rng.gen_range(1..11),
-                asics_y: rng.gen_range(1..11),
-            };
+                ship_fields = self.arrange_decks_fields(desks, ship_fields).clone();
 
-            if !self.can_not_arrange_ship(field.borrow_mut()) {
                 self.ships.push(Ship {
-                    desks: 1,
-                    fields: vec![field],
+                    desks,
+                    fields: ship_fields
                 });
             }
         }
-
-        while self.ships.iter().filter(|ship| ship.desks == 2).count() < 3 {
-            // Расположить двухпалубные корабли
-            let mut ship_fields: Vec<Field> = vec![];
-
-            ship_fields = self.arrange_decks_fields(2, ship_fields).clone();
-
-            self.ships.push(Ship {
-                desks: 2,
-                fields: ship_fields
-            });
-        }
-
-        while self.ships.iter().filter(|ship| ship.desks == 3).count() < 2 {
-            // Расположить трехпалубные корабли
-            let mut ship_fields: Vec<Field> = vec![];
-
-            ship_fields = self.arrange_decks_fields(3, ship_fields).clone();
-
-            self.ships.push(Ship {
-                desks: 3,
-                fields: ship_fields
-            });
-        }
-
-        while self.ships.iter().filter(|ship| ship.desks == 4).count() < 1 {
-            let mut ship_fields: Vec<Field> = vec![];
-
-            ship_fields = self.arrange_decks_fields(3, ship_fields).clone();
-
-            self.ships.push(Ship {
-                desks: 4,
-                fields: ship_fields
-            });
-        }
     }
 
+    ///
+    /// Рандомное расположение палуб кораблей на поле боя
+    ///
     fn arrange_decks_fields(&mut self, number_of_desc: u8, mut ship_fields: Vec<Field>) -> Vec<Field> {
         let mut rng = rand::thread_rng();
 
         while ship_fields.len() < number_of_desc as usize {
-
-            let (mut x, mut y) = (rng.gen_range(1..11), rng.gen_range(1..11));
+            let (mut x, mut y) = (rng.gen_range(1..self.size + 1), rng.gen_range(1..self.size + 1));
 
             if ship_fields.len() > 0 {
                 let last_field = ship_fields.last().unwrap();
 
                 (x, y) = (last_field.asics_x + 1, last_field.asics_y);
 
-                if self.can_not_arrange_ship((Field { asics_x: x, asics_y: y }).borrow_mut()) || x > 10 || y > 10   {
+                if self.can_not_arrange_ship((Field { asics_x: x, asics_y: y }).borrow_mut()) || x > self.size || y > self.size {
                     (x, y) = (last_field.asics_x, last_field.asics_y + 1);
-                } else if self.can_not_arrange_ship((Field { asics_x: last_field.asics_x, asics_y: last_field.asics_y + 1 }).borrow_mut()) || last_field.asics_y + 1 > 10 {
+                } else if self.can_not_arrange_ship((Field { asics_x: last_field.asics_x, asics_y: last_field.asics_y + 1 }).borrow_mut()) || last_field.asics_y + 1 > self.size {
                     self.arrange_decks_fields(number_of_desc, vec![]);
                 }
             }
 
             // Если координаты выходят за рамки, то пересобрать весь вектор
-            if x > 10 || y > 10 {
+            if x > self.size || y > self.size {
                 self.arrange_decks_fields(number_of_desc, vec![]);
             }
 
@@ -173,12 +150,14 @@ impl BattleGround {
         ship_fields
     }
 
-    fn build() -> Self {
-        let battle_ground_size = 10;
+    fn build(size: u8, number_of_ships: HashMap<u8, u8>) -> Self {
+        let battle_ground_size = size;
 
         let mut battle_ground = Self {
+            size: battle_ground_size,
+            number_of_ships,
             fields: vec![],
-            ships: vec![]
+            ships: vec![],
         };
 
         for x in 1..(battle_ground_size + 1) {
