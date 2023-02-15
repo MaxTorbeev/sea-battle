@@ -20,7 +20,17 @@ impl BattleGround {
             fields: vec![(Field { asics_x: 2, asics_y: 3 })],
         };
 
+        let two_desk_ship = Ship {
+            desks: 2,
+            fields: vec![
+                Field { asics_x: 10, asics_y: 7 },
+                Field { asics_x: 10, asics_y: 8 },
+            ],
+        };
+
+        // Добавить однопалубный
         ships.push(one_desk_ship);
+        ships.push(two_desk_ship);
 
         self.ships = ships
     }

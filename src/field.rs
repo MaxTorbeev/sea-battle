@@ -9,14 +9,13 @@ pub struct Field {
 impl Field {
     pub fn has_ship(&self, ships: Vec<Ship>) -> bool {
         for ship in ships.iter() {
-            for shipField in ship.fields.iter() {
-                if shipField.asics_y == self.asics_y && shipField.asics_y == self.asics_x {
+            for ship_field in ship.fields.iter() {
+                if ship_field.asics_y == self.asics_y && ship_field.asics_x == self.asics_x {
                     return true;
                 }
             }
         }
 
         false
-        // ships.contains(|ship: Ship| ship.fields.contains() )
     }
 }
