@@ -12,7 +12,7 @@ impl BattleGround {
         Self::build()
     }
 
-    fn arrange_ships(&self) -> Vec<Ship> {
+    fn arrange_ships(&mut self) {
         let mut ships = vec![];
 
         let one_desk_ship = Ship {
@@ -22,7 +22,7 @@ impl BattleGround {
 
         ships.push(one_desk_ship);
 
-        ships
+        self.ships = ships
     }
 
     fn build() -> Self {
@@ -41,6 +41,8 @@ impl BattleGround {
                 });
             }
         }
+
+        battle_ground.arrange_ships();
 
         battle_ground
     }

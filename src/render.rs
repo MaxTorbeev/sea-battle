@@ -1,4 +1,10 @@
 use crate::battle_ground::BattleGround;
+use crate::field::Field;
+use crate::ship::Ship;
+
+fn print_field(field: &Field, ships: Vec<Ship>) {
+    print!("| {} ", field.has_ship(ships) as u8);
+}
 
 pub fn battle_ground(battle_ground: BattleGround) {
     print!("      ");
@@ -26,14 +32,14 @@ pub fn battle_ground(battle_ground: BattleGround) {
                     println!();
                     print!(" А |  ");
 
-                    print!("| {} ", false as u8);
+                    print_field(field, battle_ground.ships.clone());
                 }
             } else {
-                print!("| {} ", false as u8);
+                print_field(field, battle_ground.ships.clone());
             }
         } else {
             print!("      ");
-            print!("| {} ", false as u8);
+            print_field(field, battle_ground.ships.clone());
         }
     }
 }
