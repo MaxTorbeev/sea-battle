@@ -1,3 +1,5 @@
+#[warn(unused_variables)]
+
 use crate::battle_ground::BattleGround;
 use crate::field::Field;
 
@@ -27,7 +29,7 @@ fn print_space() {
     print!("      ");
 }
 
-pub fn battle_ground(battle_ground: BattleGround, size: u8) {
+pub fn battle_ground(battle_ground: BattleGround) {
     print_space();
 
     for field in battle_ground.fields.iter() {

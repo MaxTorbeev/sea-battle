@@ -93,16 +93,24 @@ impl BattleGround {
     ///
     fn arrange_ships(&mut self) {
         for (desks, number) in self.number_of_ships.clone() {
+            let mut tries: u8 = 0;
+
             while self.ships.iter().filter(|ship| ship.desks == desks).count() < number as usize {
+                tries += 1;
+
                 // Расположить двухпалубные корабли
                 let mut ship_fields: Vec<Field> = vec![];
 
-                ship_fields = self.arrange_decks_fields(desks, ship_fields).clone();
+                ship_fields = self.arrange_decks_fields(desks, ship_fields, 0).clone();
 
                 self.ships.push(Ship {
                     desks,
                     fields: ship_fields
                 });
+
+                if tries > 100 {
+                    break;
+                }
             }
         }
     }
@@ -110,10 +118,16 @@ impl BattleGround {
     ///
     /// Рандомное расположение палуб кораблей на поле боя
     ///
-    fn arrange_decks_fields(&mut self, number_of_desc: u8, mut ship_fields: Vec<Field>) -> Vec<Field> {
+    fn arrange_decks_fields(&mut self, number_of_desc: u8, mut ship_fields: Vec<Field>, mut tries: u8) -> Vec<Field> {
         let mut rng = rand::thread_rng();
 
         while ship_fields.len() < number_of_desc as usize {
+            tries += 1;
+
+            if tries == 88 {
+                break;
+            }
+
             let (mut x, mut y) = (rng.gen_range(1..self.size + 1), rng.gen_range(1..self.size + 1));
 
             if ship_fields.len() > 0 {
@@ -124,13 +138,13 @@ impl BattleGround {
                 if self.can_not_arrange_ship((Field { asics_x: x, asics_y: y }).borrow_mut()) || x > self.size || y > self.size {
                     (x, y) = (last_field.asics_x, last_field.asics_y + 1);
                 } else if self.can_not_arrange_ship((Field { asics_x: last_field.asics_x, asics_y: last_field.asics_y + 1 }).borrow_mut()) || last_field.asics_y + 1 > self.size {
-                    self.arrange_decks_fields(number_of_desc, vec![]);
+                    self.arrange_decks_fields(number_of_desc, vec![], tries);
                 }
             }
 
             // Если координаты выходят за рамки, то пересобрать весь вектор
             if x > self.size || y > self.size {
-                self.arrange_decks_fields(number_of_desc, vec![]);
+                self.arrange_decks_fields(number_of_desc, vec![], tries);
             }
 
             let field = Field {
@@ -141,9 +155,9 @@ impl BattleGround {
             if !self.can_not_arrange_ship(field.borrow()) {
                 ship_fields.push(field);
 
-                ship_fields = self.arrange_decks_fields(number_of_desc, ship_fields);
+                ship_fields = self.arrange_decks_fields(number_of_desc, ship_fields, tries);
             } else {
-                ship_fields = self.arrange_decks_fields(number_of_desc, vec![]);
+                ship_fields = self.arrange_decks_fields(number_of_desc, vec![], tries);
             }
         }
 
