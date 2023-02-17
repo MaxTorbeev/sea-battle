@@ -7,15 +7,15 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn has_ship(&self, ships: Vec<Ship>) -> bool {
+    pub fn get_ship<'a>(&'a self, ships: &'a Vec<Ship>) -> Option<&Ship> {
         for ship in ships.iter() {
             for ship_field in ship.fields.iter() {
                 if ship_field.asics_y == self.asics_y && ship_field.asics_x == self.asics_x {
-                    return true;
+                    return Some(ship);
                 }
             }
         }
 
-        false
+        None
     }
 }

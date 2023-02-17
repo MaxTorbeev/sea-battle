@@ -58,7 +58,7 @@ impl BattleGround {
         match self.get_neighboring_free_field(field, navigator) {
             None => false,
             field => {
-                if field.unwrap().has_ship(self.ships.clone()) {
+                if field.unwrap().get_ship(&self.ships).is_some() {
                     return true
                 }
                 false
@@ -138,13 +138,16 @@ impl BattleGround {
                 if self.can_not_arrange_ship((Field { asics_x: x, asics_y: y }).borrow_mut()) || x > self.size || y > self.size {
                     (x, y) = (last_field.asics_x, last_field.asics_y + 1);
                 } else if self.can_not_arrange_ship((Field { asics_x: last_field.asics_x, asics_y: last_field.asics_y + 1 }).borrow_mut()) || last_field.asics_y + 1 > self.size {
-                    self.arrange_decks_fields(number_of_desc, vec![], tries);
+                    // Координаты палубы невалидны. Очистить вектор ships
+                    return self.arrange_decks_fields(number_of_desc, vec![], tries);
                 }
             }
 
             // Если координаты выходят за рамки, то пересобрать весь вектор
             if x > self.size || y > self.size {
-                self.arrange_decks_fields(number_of_desc, vec![], tries);
+                drop(ship_fields);
+
+                return self.arrange_decks_fields(number_of_desc, vec![], tries);
             }
 
             let field = Field {
@@ -157,6 +160,7 @@ impl BattleGround {
 
                 ship_fields = self.arrange_decks_fields(number_of_desc, ship_fields, tries);
             } else {
+                // Координаты палубы невалидны. Очистить вектор ships
                 ship_fields = self.arrange_decks_fields(number_of_desc, vec![], tries);
             }
         }

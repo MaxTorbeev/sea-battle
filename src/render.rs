@@ -1,13 +1,11 @@
-#[warn(unused_variables)]
-
 use crate::battle_ground::BattleGround;
 use crate::field::Field;
 
 fn print_field(field: &Field, battle_ground: BattleGround) {
-    if field.has_ship(battle_ground.clone().ships) {
-        print!("| [ ] ");
-    } else if battle_ground.can_not_arrange_ship(field) {
-        print!("|  *  ");
+    let ship = field.get_ship(&battle_ground.ships);
+
+    if ship.is_some() {
+        print!("| [{}] ", ship.unwrap().desks);
     } else {
         print!("|     ");
     }
@@ -15,7 +13,12 @@ fn print_field(field: &Field, battle_ground: BattleGround) {
 
 fn print_legend(field: &Field, is_horizontal: bool) {
     if is_horizontal {
-        print!("|  {}  ", field.asics_y);
+        if field.asics_y.to_string().len() == 2 {
+            print!("|  {} ", field.asics_y);
+        } else {
+            print!("|  {}  ", field.asics_y);
+        }
+
     } else {
         if field.asics_x.to_string().len() == 2 {
             print!(" {}   ", field.asics_x);
@@ -29,7 +32,7 @@ fn print_space() {
     print!("      ");
 }
 
-pub fn battle_ground(battle_ground: BattleGround) {
+pub fn battle_ground(battle_ground: BattleGround, size: u8) {
     print_space();
 
     for field in battle_ground.fields.iter() {
@@ -42,7 +45,7 @@ pub fn battle_ground(battle_ground: BattleGround) {
 
     print_space();
 
-    for _x in 1..11 {
+    for _x in 1..(size + 1) {
         print!("------");
     }
 
