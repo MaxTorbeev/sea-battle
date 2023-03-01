@@ -32,7 +32,9 @@ fn print_space() {
     print!("      ");
 }
 
-pub fn battle_ground(battle_ground: BattleGround, size: u8) {
+pub fn battle_ground(battle_ground: &BattleGround, size: u8) {
+    println!();
+    println!();
     print_space();
 
     for field in battle_ground.fields.iter() {
